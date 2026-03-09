@@ -1,0 +1,127 @@
+# -*- coding: utf-8 -*-
+
+import arcpy
+
+
+class Toolbox:
+    def __init__(self):
+        """Define the toolbox"""
+        self.label = "Raster Analysis Toolbox"
+        self.alias = "rasteranalysis"
+
+        # List of tool classes
+        self.tools = [RasterAnalysis]
+
+
+class RasterAnalysis:
+    def __init__(self):
+        """Define the tool"""
+        self.label = "Composite, Hillshade, and Slope Tool"
+        self.description = "Creates a composite raster, hillshade raster, and slope raster"
+
+    def getParameterInfo(self):
+        """Define tool parameters"""
+
+        band2 = arcpy.Parameter(
+            displayName="Band 2 (Blue)",
+            name="band2",
+            datatype="GPRasterLayer",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        band3 = arcpy.Parameter(
+            displayName="Band 3 (Green)",
+            name="band3",
+            datatype="GPRasterLayer",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        band4 = arcpy.Parameter(
+            displayName="Band 4 (Red)",
+            name="band4",
+            datatype="GPRasterLayer",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        dem = arcpy.Parameter(
+            displayName="DEM Raster",
+            name="dem",
+            datatype="GPRasterLayer",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        composite_out = arcpy.Parameter(
+            displayName="Output Composite Raster",
+            name="composite_out",
+            datatype="DERasterDataset",
+            parameterType="Required",
+            direction="Output"
+        )
+
+        hillshade_out = arcpy.Parameter(
+            displayName="Output Hillshade Raster",
+            name="hillshade_out",
+            datatype="DERasterDataset",
+            parameterType="Required",
+            direction="Output"
+        )
+
+        slope_out = arcpy.Parameter(
+            displayName="Output Slope Raster",
+            name="slope_out",
+            datatype="DERasterDataset",
+            parameterType="Required",
+            direction="Output"
+        )
+
+        params = [band2, band3, band4, dem, composite_out, hillshade_out, slope_out]
+
+        return params
+
+    def isLicensed(self):
+        return True
+
+    def execute(self, parameters, messages):
+        """Main code"""
+
+        band2 = parameters[0].valueAsText
+        band3 = parameters[1].valueAsText
+        band4 = parameters[2].valueAsText
+        dem = parameters[3].valueAsText
+        composite_out = parameters[4].valueAsText
+        hillshade_out = parameters[5].valueAsText
+        slope_out = parameters[6].valueAsText
+
+        arcpy.AddMessage("Creating composite raster...")
+
+        arcpy.management.CompositeBands(
+            in_rasters=[band4, band3, band2],
+            out_raster=composite_out
+        )
+
+        arcpy.AddMessage("Composite raster created")
+
+        arcpy.AddMessage("Creating hillshade raster...")
+
+        arcpy.ddd.HillShade(
+            in_raster=dem,
+            out_raster=hillshade_out,
+            azimuth=315,
+            altitude=45
+        )
+
+        arcpy.AddMessage("Hillshade raster created")
+
+        arcpy.AddMessage("Creating slope raster...")
+
+        arcpy.ddd.Slope(
+            in_raster=dem,
+            out_raster=slope_out,
+            output_measurement="DEGREE"
+        )
+
+        arcpy.AddMessage("Slope raster created")
